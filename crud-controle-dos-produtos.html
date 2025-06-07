@@ -8,54 +8,154 @@
     <title>CRUD Firebase com Cloudinary</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h2,
+        h3 {
+            text-align: center;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            max-width: 1000px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form input,
+        form select {
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        .form-buttons button {
+            padding: 10px 20px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-buttons button:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
+
+        #productList {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0;
+            list-style: none;
+        }
+
+        .product-card {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .product-card img {
+            max-width: 120px;
+            margin-top: 8px;
+            border-radius: 4px;
+        }
+
+        .product-card button {
+            margin-top: 10px;
+            margin-right: 5px;
+            padding: 6px 10px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #statusMessage {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+
 </head>
 
 <body>
-    <h2>CRUD de Produtos</h2>
+    <h2>Cadastro de Produtos</h2>
 
-    <input type="text" id="productId" placeholder="ID do Produto">
-    <input type="text" id="productDesc" placeholder="Nome do Produto">
-    <input type="number" id="productCost" placeholder="Preço de Custo" step="0.01">
-    <input type="number" id="productSale" placeholder="Preço de Venda" step="0.01">
+    <form>
+        <input type="text" id="productId" placeholder="ID do Produto">
+        <input type="text" id="productDesc" placeholder="Nome do Produto">
+        <input type="number" id="productCost" placeholder="Preço de Custo" step="0.01">
+        <input type="number" id="productSale" placeholder="Preço de Venda" step="0.01">
+        <select id="productCategory">
+            <option value="">Selecione a Categoria</option>
+            <option value="eletronicos">Eletrônicos - PC</option>
+            <option value="jogos">Jogos de VideoGame</option>
+            <option value="quadrinhos">HQ's</option>
+            <option value="posters">Posters</option>
+            <option value="colecionaveis">Colecionáveis</option>
+        </select>
 
-    <!-- Novo campo de categoria -->
-    <select id="productCategory">
-        <option value="">Selecione a Categoria</option>
-        <option value="eletronicos">Eletrônicos - PC</option>
-        <option value="jogos">Jogos de VideoGame</option>
-        <option value="quadrinhos">HQ's</option>
-        <option value="posters">Posters</option>
-        <option value="colecionaveis">Colecionáveis</option>
-    </select>
+        <input type="text" id="productBrand" placeholder="Marca do Produto">
+        <input type="number" id="productStock" placeholder="Quantidade em Estoque" min="0">
 
-    <input type="text" id="productBrand" placeholder="Marca do Produto">
-    <input type="number" id="productStock" placeholder="Quantidade em Estoque" min="0">
+        <select id="productStatus">
+            <option value="">Status</option>
+            <option value="em estoque">Em estoque</option>
+            <option value="fora de estoque">Fora de estoque</option>
+        </select>
 
-    <select id="productStatus">
-        <option value="">Selecione o Status</option>
-        <option value="em estoque">Em estoque</option>
-        <option value="fora de estoque">Fora de estoque</option>
-    </select>
+        <input type="text" id="productFeatures" placeholder="Características">
+        <input type="text" id="productSupplier" placeholder="Fornecedor">
+        <label>
+            Data da Compra:
+            <input type="date" id="purchaseDate">
+        </label>
+        <input type="file" id="productImage" accept="image/*">
 
-    <input type="text" id="productFeatures" placeholder="Características">
-
-    <input type="text" id="productSupplier" placeholder="Fornecedor">
-
-    Data da Compra: <input type="date" id="purchaseDate">
-
-    <!--NOVO CAMPO DE UPLOAD-->
-    <input type="file" id="productImage" accept="image/*">
-
-    <button onclick="addProduct()">Adicionar</button>
+        <div class="form-buttons">
+            <button type="button" onclick="addProduct()">Adicionar Produto</button>
+        </div>
+    </form>
 
     <h3>Lista de Produtos</h3>
-    <ul id="productList"></ul>
+
+    <div style="text-align: center; margin-bottom: 15px;">
+        <input type="text" id="searchInput" placeholder="Buscar por ID ou nome..." style="padding: 8px; width: 90%; max-width: 500px; border-radius: 6px; border: 1px solid #ccc;">
+    </div>
+
+    <div class="product-list" id="productList"></div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            console.log("Página carregada, iniciando Firebase...");
-
-            // Configuração do Firebase
             const firebaseConfig = {
                 apiKey: "AIzaSyCjjy2B9jb2XZW4nIfMj1xDLogZc8oBd9M",
                 authDomain: "estoque-naturale.firebaseapp.com",
@@ -67,18 +167,26 @@
                 measurementId: "G-ZJMVMSTSBJ"
             };
 
-            // Inicializa o Firebase
             firebase.initializeApp(firebaseConfig);
-
-            // Referência ao banco de dados
             const db = firebase.database().ref("produtos");
 
-            //Config Cloudinary
             const cloudName = 'dsf2txoqr';
             const unsignedUploadPreset = 'meu_uploader';
 
-            // Função para upload da imagem no Cloudinary
+            const statusDiv = document.createElement('div');
+            statusDiv.id = "statusMessage";
+            statusDiv.style.textAlign = "center";
+            statusDiv.style.marginTop = "15px";
+            document.querySelector(".form-buttons").appendChild(statusDiv);
+
+            function showMessage(msg, color = "green") {
+                statusDiv.textContent = msg;
+                statusDiv.style.color = color;
+                setTimeout(() => statusDiv.textContent = "", 3000);
+            }
+
             async function uploadImageToCloudinary(file) {
+                showMessage("Fazendo upload da imagem...", "#0d6efd");
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('upload_preset', unsignedUploadPreset);
@@ -92,24 +200,28 @@
                 if (!response.ok) throw new Error(data.error.message || 'Erro no upload Cloudinary');
                 return data.secure_url;
             }
-            // Função para adicionar produto
+
             async function addProduct() {
-                let id = document.getElementById("productId").value.trim();
-                let desc = document.getElementById("productDesc").value.trim();
-                let cost = parseFloat(document.getElementById("productCost").value.trim());
-                let sale = parseFloat(document.getElementById("productSale").value.trim());
-                let category = document.getElementById("productCategory").value;
-                let brand = document.getElementById("productBrand").value.trim();
-                let stock = parseInt(document.getElementById("productStock").value.trim());
-                let status = document.getElementById("productStatus").value;
-                let features = document.getElementById("productFeatures").value;
-                let supplier = document.getElementById("productSupplier").value.trim();
-                let purchaseDate = document.getElementById("purchaseDate").value;
+                const btn = event.target;
+                btn.disabled = true;
+
+                const get = id => document.getElementById(id).value.trim();
+                const id = get("productId");
+                const desc = get("productDesc");
+                const cost = parseFloat(get("productCost"));
+                const sale = parseFloat(get("productSale"));
+                const category = get("productCategory");
+                const brand = get("productBrand");
+                const stock = parseInt(get("productStock"));
+                const status = get("productStatus");
+                const features = get("productFeatures");
+                const supplier = get("productSupplier");
+                const purchaseDate = document.getElementById("purchaseDate").value;
                 const imageFile = document.getElementById("productImage").files[0];
 
-
                 if (!id || !desc || isNaN(cost) || isNaN(sale) || !category) {
-                    alert("Preencha todos os campos corretamente!");
+                    showMessage("Preencha todos os campos obrigatórios corretamente.", "red");
+                    btn.disabled = false;
                     return;
                 }
 
@@ -118,7 +230,8 @@
                     try {
                         imageUrl = await uploadImageToCloudinary(imageFile);
                     } catch (error) {
-                        alert("Erro no upload da imagem: " + error.message);
+                        showMessage("Erro no upload: " + error.message, "red");
+                        btn.disabled = false;
                         return;
                     }
                 }
@@ -136,114 +249,110 @@
                     dataCompra: purchaseDate,
                     imagem: imageUrl
                 })
-                    .then(() => console.log("Produto adicionado com sucesso!"))
-                    .catch(error => console.error("Erro ao adicionar:", error));
+                    .then(() => {
+                        showMessage("Produto adicionado com sucesso!");
+                        document.querySelectorAll("input, select").forEach(e => e.value = "");
+                    })
+                    .catch(error => showMessage("Erro ao adicionar: " + error.message, "red"))
+                    .finally(() => btn.disabled = false);
+            }
 
-                document.getElementById("productId").value = "";
-                document.getElementById("productDesc").value = "";
-                document.getElementById("productCost").value = "";
-                document.getElementById("productSale").value = "";
-                document.getElementById("productCategory").value = "";
-                document.getElementById("productBrand").value = "";
-                document.getElementById("productStock").value = "";
-                document.getElementById("productStatus").value = "";
-                document.getElementById("productFeatures").value = "";
-                document.getElementById("productSupplier").value = "";
-                document.getElementById("purchaseDate").value = "";
-                document.getElementById("productImage").value = "";
-                    
-            setTimeout(() => {
-                db.once("value").then(snapshot => {
-                    console.log("Atualização forçada após inserção.");
-                });
-            }, 500);
-        }
-
-            // Função para excluir produto
             function deleteProduct(id) {
                 if (confirm(`Tem certeza que deseja excluir o produto ${id}?`)) {
                     db.child(id).remove()
-                        .then(() => console.log("Produto excluído:", id))
-                        .catch(error => console.error("Erro ao excluir:", error));
+                        .then(() => showMessage("Produto excluído."))
+                        .catch(error => showMessage("Erro ao excluir: " + error.message, "red"));
                 }
             }
 
-            // Função para atualizar produto
             function updateProduct(id) {
-                let newDesc = prompt("Digite o novo nome:");
-                let newCost = prompt("Digite o novo preço de custo:");
-                let newSale = prompt("Digite o novo preço de venda:");
-                let newCategory = prompt("Digite a nova categoria (eletronicos, jogos, quadrinhos, posters ou colecionaveis):");
-                let newBrand = prompt("Digite a nova marca:");
-                let newStock = prompt("Digite a nova quantidade em estoque:");
-                let newStatus = prompt("Digite o novo status (em estoque/fora de estoque):");
-                let newFeatures = prompt("Digite as novas características:");
-                let newSupplier = prompt("Novo fornecedor:");
-                let newPurchaseDate = prompt("Nova data de compra (YYYY-MM-DD):");
+                db.child(id).once("value", snapshot => {
+                    const data = snapshot.val();
+                    const promptWithDefault = (label, value) => prompt(label, value || "");
 
-                if (newDesc && !isNaN(newCost) && !isNaN(newSale) && newCategory) {
+                    const newDesc = promptWithDefault("Novo nome:", data.descricao);
+                    const newCost = parseFloat(promptWithDefault("Novo custo:", data.precoCusto));
+                    const newSale = parseFloat(promptWithDefault("Novo preço de venda:", data.precoVenda));
+                    const newCategory = promptWithDefault("Nova categoria:", data.categoria);
+                    const newBrand = promptWithDefault("Nova marca:", data.marca);
+                    const newStock = parseInt(promptWithDefault("Novo estoque:", data.estoque));
+                    const newStatus = promptWithDefault("Novo status:", data.status);
+                    const newFeatures = promptWithDefault("Características:", data.caracteristicas);
+                    const newSupplier = promptWithDefault("Fornecedor:", data.fornecedor);
+                    const newPurchaseDate = promptWithDefault("Data da compra (YYYY-MM-DD):", data.dataCompra);
+
+                    if (!newDesc || isNaN(newCost) || isNaN(newSale) || !newCategory) {
+                        showMessage("Campos inválidos para atualização", "red");
+                        return;
+                    }
+
                     db.child(id).update({
                         descricao: newDesc,
-                        precoCusto: parseFloat(newCost),
-                        precoVenda: parseFloat(newSale),
+                        precoCusto: newCost,
+                        precoVenda: newSale,
                         categoria: newCategory,
                         marca: newBrand,
-                        estoque: parseInt(newStock),
+                        estoque: newStock,
                         status: newStatus,
                         caracteristicas: newFeatures,
                         fornecedor: newSupplier,
                         dataCompra: newPurchaseDate
                     })
-                        .then(() => console.log("Produto atualizado:", id))
-                        .catch(error => console.error("Erro ao atualizar:", error));
-                }
+                        .then(() => showMessage("Produto atualizado com sucesso!"))
+                        .catch(error => showMessage("Erro ao atualizar: " + error.message, "red"));
+                });
             }
 
-
-            // Monitora mudanças no banco e atualiza a lista
-            db.on("value", (snapshot) => {
-                let list = document.getElementById("productList");
+            function renderProducts(snapshot, filter = "") {
+                const list = document.getElementById("productList");
                 list.innerHTML = "";
 
-                snapshot.forEach((childSnapshot) => {
-                    let id = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    let desc = data.descricao || "Sem descrição";
-                    let cost = data.precoCusto ?? 0;
-                    let sale = data.precoVenda ?? 0;
-                    let category = data.categoria || "Sem categoria";
-                    let brand = data.marca || "Sem marca";
-                    let stock = data.estoque ?? 0;
-                    let status = data.status || "Sem status";
-                    let caracteristicas = data.caracteristicas || "Não informada";
-                    let fornecedor = data.fornecedor || "Não informado";
-                    let dataCompra = data.dataCompra || "-";
+                snapshot.forEach(child => {
+                    const id = child.key;
+                    const p = child.val();
+                    const name = (p.descricao || "").toLowerCase();
+                    const search = filter.toLowerCase();
 
-                    let li = document.createElement("li");
-                    li.innerHTML = `${id}: ${desc}
-                    | Custo: R$ ${cost.toFixed(2)}
-                    | Venda: R$ ${sale.toFixed(2)}
-                    | Categoria: ${category}
-                    | Marca: ${brand}
-                    | Estoque: ${stock}
-                    | Status: ${status}
-                    | Características: ${data.caracteristicas || "Não informado"}
-                    | Fornecedor: ${fornecedor}
-                    | Compra: ${dataCompra}
-                    ${data.imagem ? `<br><img src="${data.imagem}" alt="Imagem do produto" style="max-width:100px; margin-top:5px;">` : ""}
-                    <br>
-                                            
-                        <button onclick="updateProduct('${id}')">Editar</button>
-                        <button onclick="deleteProduct('${id}')">Excluir</button>
-                    `;
-                    list.appendChild(li);
+                    if (id.toLowerCase().includes(search) ||
+                        name.includes(search)) {
+                        const div = document.createElement("div");
+                        div.className = "product-card";
+                        div.innerHTML = `
+                            <strong>${id}: ${name}</strong><br>
+                            Preço Custo: R$ ${p.precoCusto?.toFixed(2) || 0}<br>
+                            Preço Venda: R$ ${p.precoVenda?.toFixed(2) || 0}<br>
+                            Categoria: ${p.categoria || "-"}<br>
+                            Marca: ${p.marca || "-"}<br>
+                            Estoque: ${p.estoque || 0}<br>
+                            Status: ${p.status || "-"}<br>
+                            Características: ${p.caracteristicas || "-"}<br>
+                            Fornecedor: ${p.fornecedor || "-"}<br>
+                            Compra: ${p.dataCompra || "-"}<br>
+                            ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto">` : ""}
+                            <br><br>
+                            <button onclick="updateProduct('${id}')">Editar</button>
+                            <button onclick="deleteProduct('${id}')">Excluir</button>
+                        `;
+                        list.appendChild(div);
+                    }
+                });
+            }
+            db.on("value", (snapshot) => {
+                renderProducts(snapshot);
+            });
+
+            const searchInput = document.getElementById("searchInput");
+            searchInput.addEventListener("input", () => {
+                const filterValue = searchInput.value;
+                db.on("value", (snapshot) => {
+                    const filterValue = document.getElementById("searchInput").value.trim();
+                    renderProducts(snapshot, filterValue);
                 });
             });
 
-        // Expor funções globalmente para os botões funcionarem
-        window.addProduct = addProduct;
-        window.deleteProduct = deleteProduct;
-        window.updateProduct = updateProduct;
+            window.addProduct = addProduct;
+            window.deleteProduct = deleteProduct;
+            window.updateProduct = updateProduct;
         });
     </script>
 </body>
