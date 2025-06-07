@@ -1,0 +1,251 @@
+<!--Página web no formato CRUD para facilitar o processo de cadastro dos produtos no banco de dados Firebase-->
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Firebase com Cloudinary</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+
+<body>
+    <h2>CRUD de Produtos</h2>
+
+    <input type="text" id="productId" placeholder="ID do Produto">
+    <input type="text" id="productDesc" placeholder="Nome do Produto">
+    <input type="number" id="productCost" placeholder="Preço de Custo" step="0.01">
+    <input type="number" id="productSale" placeholder="Preço de Venda" step="0.01">
+
+    <!-- Novo campo de categoria -->
+    <select id="productCategory">
+        <option value="">Selecione a Categoria</option>
+        <option value="eletronicos">Eletrônicos - PC</option>
+        <option value="jogos">Jogos de VideoGame</option>
+        <option value="quadrinhos">HQ's</option>
+        <option value="posters">Posters</option>
+        <option value="colecionaveis">Colecionáveis</option>
+    </select>
+
+    <input type="text" id="productBrand" placeholder="Marca do Produto">
+    <input type="number" id="productStock" placeholder="Quantidade em Estoque" min="0">
+
+    <select id="productStatus">
+        <option value="">Selecione o Status</option>
+        <option value="em estoque">Em estoque</option>
+        <option value="fora de estoque">Fora de estoque</option>
+    </select>
+
+    <input type="text" id="productFeatures" placeholder="Características">
+
+    <input type="text" id="productSupplier" placeholder="Fornecedor">
+
+    Data da Compra: <input type="date" id="purchaseDate">
+
+    <!--NOVO CAMPO DE UPLOAD-->
+    <input type="file" id="productImage" accept="image/*">
+
+    <button onclick="addProduct()">Adicionar</button>
+
+    <h3>Lista de Produtos</h3>
+    <ul id="productList"></ul>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("Página carregada, iniciando Firebase...");
+
+            // Configuração do Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyCjjy2B9jb2XZW4nIfMj1xDLogZc8oBd9M",
+                authDomain: "estoque-naturale.firebaseapp.com",
+                databaseURL: "https://estoque-naturale-default-rtdb.firebaseio.com",
+                projectId: "estoque-naturale",
+                storageBucket: "estoque-naturale.firebasestorage.app",
+                messagingSenderId: "204707025194",
+                appId: "1:204707025194:web:158dd6235e0996b6e54e53",
+                measurementId: "G-ZJMVMSTSBJ"
+            };
+
+            // Inicializa o Firebase
+            firebase.initializeApp(firebaseConfig);
+
+            // Referência ao banco de dados
+            const db = firebase.database().ref("produtos");
+
+            //Config Cloudinary
+            const cloudName = 'dsf2txoqr';
+            const unsignedUploadPreset = 'meu_uploader';
+
+            // Função para upload da imagem no Cloudinary
+            async function uploadImageToCloudinary(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', unsignedUploadPreset);
+
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error.message || 'Erro no upload Cloudinary');
+                return data.secure_url;
+            }
+            // Função para adicionar produto
+            async function addProduct() {
+                let id = document.getElementById("productId").value.trim();
+                let desc = document.getElementById("productDesc").value.trim();
+                let cost = parseFloat(document.getElementById("productCost").value.trim());
+                let sale = parseFloat(document.getElementById("productSale").value.trim());
+                let category = document.getElementById("productCategory").value;
+                let brand = document.getElementById("productBrand").value.trim();
+                let stock = parseInt(document.getElementById("productStock").value.trim());
+                let status = document.getElementById("productStatus").value;
+                let features = document.getElementById("productFeatures").value;
+                let supplier = document.getElementById("productSupplier").value.trim();
+                let purchaseDate = document.getElementById("purchaseDate").value;
+                const imageFile = document.getElementById("productImage").files[0];
+
+
+                if (!id || !desc || isNaN(cost) || isNaN(sale) || !category) {
+                    alert("Preencha todos os campos corretamente!");
+                    return;
+                }
+
+                let imageUrl = "";
+                if (imageFile) {
+                    try {
+                        imageUrl = await uploadImageToCloudinary(imageFile);
+                    } catch (error) {
+                        alert("Erro no upload da imagem: " + error.message);
+                        return;
+                    }
+                }
+
+                db.child(id).set({
+                    descricao: desc,
+                    precoCusto: cost,
+                    precoVenda: sale,
+                    categoria: category,
+                    marca: brand,
+                    estoque: stock,
+                    status: status,
+                    caracteristicas: features,
+                    fornecedor: supplier,
+                    dataCompra: purchaseDate,
+                    imagem: imageUrl
+                })
+                    .then(() => console.log("Produto adicionado com sucesso!"))
+                    .catch(error => console.error("Erro ao adicionar:", error));
+
+                document.getElementById("productId").value = "";
+                document.getElementById("productDesc").value = "";
+                document.getElementById("productCost").value = "";
+                document.getElementById("productSale").value = "";
+                document.getElementById("productCategory").value = "";
+                document.getElementById("productBrand").value = "";
+                document.getElementById("productStock").value = "";
+                document.getElementById("productStatus").value = "";
+                document.getElementById("productFeatures").value = "";
+                document.getElementById("productSupplier").value = "";
+                document.getElementById("purchaseDate").value = "";
+                document.getElementById("productImage").value = "";
+                    
+            setTimeout(() => {
+                db.once("value").then(snapshot => {
+                    console.log("Atualização forçada após inserção.");
+                });
+            }, 500);
+        }
+
+            // Função para excluir produto
+            function deleteProduct(id) {
+                if (confirm(`Tem certeza que deseja excluir o produto ${id}?`)) {
+                    db.child(id).remove()
+                        .then(() => console.log("Produto excluído:", id))
+                        .catch(error => console.error("Erro ao excluir:", error));
+                }
+            }
+
+            // Função para atualizar produto
+            function updateProduct(id) {
+                let newDesc = prompt("Digite o novo nome:");
+                let newCost = prompt("Digite o novo preço de custo:");
+                let newSale = prompt("Digite o novo preço de venda:");
+                let newCategory = prompt("Digite a nova categoria (eletronicos, jogos, quadrinhos, posters ou colecionaveis):");
+                let newBrand = prompt("Digite a nova marca:");
+                let newStock = prompt("Digite a nova quantidade em estoque:");
+                let newStatus = prompt("Digite o novo status (em estoque/fora de estoque):");
+                let newFeatures = prompt("Digite as novas características:");
+                let newSupplier = prompt("Novo fornecedor:");
+                let newPurchaseDate = prompt("Nova data de compra (YYYY-MM-DD):");
+
+                if (newDesc && !isNaN(newCost) && !isNaN(newSale) && newCategory) {
+                    db.child(id).update({
+                        descricao: newDesc,
+                        precoCusto: parseFloat(newCost),
+                        precoVenda: parseFloat(newSale),
+                        categoria: newCategory,
+                        marca: newBrand,
+                        estoque: parseInt(newStock),
+                        status: newStatus,
+                        caracteristicas: newFeatures,
+                        fornecedor: newSupplier,
+                        dataCompra: newPurchaseDate
+                    })
+                        .then(() => console.log("Produto atualizado:", id))
+                        .catch(error => console.error("Erro ao atualizar:", error));
+                }
+            }
+
+
+            // Monitora mudanças no banco e atualiza a lista
+            db.on("value", (snapshot) => {
+                let list = document.getElementById("productList");
+                list.innerHTML = "";
+
+                snapshot.forEach((childSnapshot) => {
+                    let id = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    let desc = data.descricao || "Sem descrição";
+                    let cost = data.precoCusto ?? 0;
+                    let sale = data.precoVenda ?? 0;
+                    let category = data.categoria || "Sem categoria";
+                    let brand = data.marca || "Sem marca";
+                    let stock = data.estoque ?? 0;
+                    let status = data.status || "Sem status";
+                    let caracteristicas = data.caracteristicas || "Não informada";
+                    let fornecedor = data.fornecedor || "Não informado";
+                    let dataCompra = data.dataCompra || "-";
+
+                    let li = document.createElement("li");
+                    li.innerHTML = `${id}: ${desc}
+                    | Custo: R$ ${cost.toFixed(2)}
+                    | Venda: R$ ${sale.toFixed(2)}
+                    | Categoria: ${category}
+                    | Marca: ${brand}
+                    | Estoque: ${stock}
+                    | Status: ${status}
+                    | Características: ${data.caracteristicas || "Não informado"}
+                    | Fornecedor: ${fornecedor}
+                    | Compra: ${dataCompra}
+                    ${data.imagem ? `<br><img src="${data.imagem}" alt="Imagem do produto" style="max-width:100px; margin-top:5px;">` : ""}
+                    <br>
+                                            
+                        <button onclick="updateProduct('${id}')">Editar</button>
+                        <button onclick="deleteProduct('${id}')">Excluir</button>
+                    `;
+                    list.appendChild(li);
+                });
+            });
+
+        // Expor funções globalmente para os botões funcionarem
+        window.addProduct = addProduct;
+        window.deleteProduct = deleteProduct;
+        window.updateProduct = updateProduct;
+        });
+    </script>
+</body>
+
+</html>
