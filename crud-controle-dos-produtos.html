@@ -74,23 +74,6 @@
             padding: 0;
         }
 
-        /* Estilo para visualização em lista */
-        .list-view .product-card {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        .list-view .product-card img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
         .product-card {
             background-color: #fff;
             padding: 10px;
@@ -126,28 +109,6 @@
         #statusMessage {
             margin-top: 10px;
             font-weight: bold;
-        }
-
-        .product-list-item {
-            padding: 12px;
-            background-color: #fff;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .product-list-item button {
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            background-color: #0d6efd;
-            color: #fff;
-            border: none;
-            cursor: pointer;
         }
     </style>
 
@@ -194,21 +155,14 @@
 
     <h3>Lista de Produtos</h3>
     <div style="text-align: center; margin-bottom: 10px;">
-        <button id="toggleViewBtn" onclick="toggleViewMode()" style="padding: 8px 15px; border-radius: 6px; background-color: #0d6efd; color: white; border: none; cursor: pointer;">
-            Alternar para Lista
+
+        <button id="cardViewBtn" title="Visualização em Cards" style="background:none; border:none; cursor:pointer; font-size: 22px; color:#0d6efd; margin-right:10px;">
+            &#x1F5BC; <!-- Ícone de foto / card -->
+        </button>
+        <button id="listViewBtn" title="Visualização em Lista" style="background:none; border:none; cursor:pointer; font-size: 22px; color:#888;">
+            &#9776; <!-- Ícone de lista -->
         </button>
     </div>
-
-
-    <div style="text-align: center; margin-bottom: 15px;">
-        <input type="text" id="searchInput" placeholder="Buscar por ID ou nome..." style="padding: 8px; width: 90%; max-width: 500px; border-radius: 6px; border: 1px solid #ccc;">
-    </div>
-
-    <div style="text-align: center; margin-bottom: 10px;">
-        <button id="toggleViewBtn" style="padding: 8px 16px; border-radius: 6px; background-color: #0d6efd; color: white; border: none; cursor: pointer;">Alternar para modo lista 📄
-        </button>
-    </div>
-
 
     <div class="product-list" id="productList"></div>
 
@@ -261,13 +215,6 @@
                 }
 
                 let isCardView = true;
-
-                document.getElementById("toggleViewBtn").addEventListener("click", () => {
-                    isCardView = !isCardView;
-                    document.getElementById("productList").className = isCardView ? "product-list" : "product-list list-view";
-                    document.getElementById("toggleViewBtn").textContent = isCardView ? "Alternar para modo lista 📄" : "Alternar para modo card 🃏";
-                    db.once("value", snapshot => renderProducts(snapshot, document.getElementById("searchInput").value));
-                });
 
                 async function addProduct() {
                     const btn = event.target;
@@ -371,20 +318,42 @@
                     });
                 }
 
-                let currentView = "card"; // "card" ou "lista"
+                let currentView = "card"; // default
 
-                function renderProducts(snapshot, filter = "") {
+                // Função para alternar visualização para cards
+                function setCardView() {
+                    currentView = "card";
+                    document.getElementById("cardViewBtn").style.color = "#0d6efd";
+                    document.getElementById("listViewBtn").style.color = "#888";
+                    // Recarregar a lista para atualizar a exibição
+                    db.once("value").then(renderProducts);
+                }
+
+                // Função para alternar visualização para lista
+                function setListView() {
+                    currentView = "list";
+                    document.getElementById("listViewBtn").style.color = "#0d6efd";
+                    document.getElementById("cardViewBtn").style.color = "#888";
+                    db.once("value").then(renderProducts);
+                }
+
+                // Adiciona listeners aos botões ícones
+                document.getElementById("cardViewBtn").addEventListener("click", setCardView);
+                document.getElementById("listViewBtn").addEventListener("click", setListView);
+
+                function renderProducts(snapshot) {
                     const list = document.getElementById("productList");
                     list.innerHTML = "";
+
+                    const filter = document.getElementById("searchInput").value.trim().toLowerCase();
 
                     const data = [];
                     snapshot.forEach(child => {
                         const id = child.key;
                         const p = child.val();
                         const name = (p.descricao || "").toLowerCase();
-                        const search = filter.toLowerCase();
 
-                        if (id.toLowerCase().includes(search) || name.includes(search)) {
+                        if (id.toLowerCase().includes(filter) || name.includes(filter)) {
                             data.push({ id, ...p });
                         }
                     });
@@ -403,74 +372,92 @@
                             `;
                             list.appendChild(div);
                         });
-                    } else {
+                    } else if (currentView === "list") {
                         const table = document.createElement("table");
-                        table.style.width = "100%";
+                        table.style.width = "90%";
+                        table.style.margin = "auto";
                         table.style.borderCollapse = "collapse";
-                        table.innerHTML = `
-                            <thead style="background:#f0f0f0">
-                                <tr>
-                                    <th>ID</th><th>Nome</th><th>Preço Custo</th><th>Preço Venda</th>
-                                    <th>Categoria</th><th>Marca</th><th>Estoque</th>
-                                    <th>Status</th><th>Características</th><th>Fornecedor</th>
-                                    <th>Compra</th><th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
+                        table.style.fontSize = "14px";
+
+                        // Cabeçalho
+                        const thead = document.createElement("thead");
+                        thead.innerHTML = `
+                        <tr style="background-color:#0d6efd; color:white;">
+                            <th style="padding: 8px; border: 1px solid #ccc;">ID</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Nome</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Preço Venda</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Categoria</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Estoque</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Status</th>
+                            <th style="padding: 8px; border: 1px solid #ccc;">Ações</th>
+                        </tr>
+                        `;
+                        table.appendChild(thead);
+
+                        const tbody = document.createElement("tbody");
+
+                        data.forEach(p => {
+                            const tr = document.createElement("tr");
+                            tr.style.border = "1px solid #ccc";
+
+                            tr.innerHTML = `
+                            <td style="padding: 6px; border: 1px solid #ccc;">${p.id}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">${p.descricao}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">R$ ${p.precoVenda?.toFixed(2) || "-"}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">${p.categoria}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">${p.estoque ?? "-"}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">${p.status ?? "-"}</td>
+                            <td style="padding: 6px; border: 1px solid #ccc;">
+                            <button onclick="toggleDetails(this)" style="margin-right: 5px;">Mais detalhes</button>
+                            <button onclick="updateProduct('${p.id}')">Editar</button>
+                            <button onclick="deleteProduct('${p.id}')">Excluir</button>
+                            </td>
                         `;
 
-                        const tbody = table.querySelector("tbody");
-                        data.forEach(p => {
-                            const row = document.createElement("tr");
-                            row.innerHTML = `
-                                <td>${p.id}</td>
-                                <td>${p.descricao || "-"}</td>
-                                <td>R$ ${p.precoCusto?.toFixed(2) || "-"}</td>
-                                <td>R$ ${p.precoVenda?.toFixed(2) || "-"}</td>
-                                <td>${p.categoria || "-"}</td>
-                                <td>${p.marca || "-"}</td>
-                                <td>${p.estoque || "0"}</td>
-                                <td>${p.status || "-"}</td>
-                                <td>${p.caracteristicas || "-"}</td>
-                                <td>${p.fornecedor || "-"}</td>
-                                <td>${p.dataCompra || "-"}</td>
-                                <td>
-                                    <button onclick="updateProduct('${p.id}')">Editar</button>
-                                    <button onclick="deleteProduct('${p.id}')">Excluir</button>
-                                </td>
-                            `;
-                            tbody.appendChild(row);
+                            // Linha extra para detalhes (oculta inicialmente)
+                            const trDetails = document.createElement("tr");
+                            trDetails.style.display = "none";
+                            trDetails.style.backgroundColor = "#f4f4f4";
+
+                            trDetails.innerHTML = `
+                            <td colspan="7" style="padding: 10px; border: 1px solid #ccc; font-size: 13px;">
+                            <strong>Características:</strong> ${p.caracteristicas || "-"}<br>
+                            <strong>Marca:</strong> ${p.marca || "-"}<br>
+                            <strong>Fornecedor:</strong> ${p.fornecedor || "-"}<br>
+                            <strong>Data da Compra:</strong> ${p.dataCompra || "-"}<br>
+                            ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto" style="max-height:100px; margin-top:8px; border-radius:5px;">` : ""}
+                            </td>
+                        `;
+
+                            tbody.appendChild(tr);
+                            tbody.appendChild(trDetails);
                         });
 
+                        table.appendChild(tbody);
                         list.appendChild(table);
                     }
                 }
 
-                function toggleViewMode() {
-                    currentView = currentView === "card" ? "lista" : "card";
-                    const btn = document.getElementById("toggleViewBtn");
-                    btn.textContent = currentView === "card" ? "Alternar para Lista" : "Alternar para Cards";
+                // Função para alternar detalhes no modo lista
+                window.toggleDetails = function (btn) {
+                    const tr = btn.closest("tr");
+                    const nextTr = tr.nextElementSibling;
+                    if (nextTr.style.display === "none") {
+                        nextTr.style.display = "table-row";
+                        btn.textContent = "Menos detalhes";
+                    } else {
+                        nextTr.style.display = "none";
+                        btn.textContent = "Mais detalhes";
+                    }
+                };
 
-                    db.once("value", snapshot => {
-                        const filterValue = document.getElementById("searchInput").value.trim();
-                        renderProducts(snapshot, filterValue);
-                    });
-                }
-
-
-
-                db.on("value", (snapshot) => {
-                    renderProducts(snapshot);
+                // Atualiza a lista ao buscar
+                document.getElementById("searchInput").addEventListener("input", () => {
+                    db.once("value").then(renderProducts);
                 });
 
-                const searchInput = document.getElementById("searchInput");
-                searchInput.addEventListener("input", () => {
-                    const filterValue = searchInput.value;
-                    db.on("value", (snapshot) => {
-                        const filterValue = document.getElementById("searchInput").value.trim();
-                        renderProducts(snapshot, filterValue);
-                    });
-                });
+                // Atualiza a lista inicialmente
+                db.once("value").then(renderProducts);
 
                 window.addProduct = addProduct;
                 window.deleteProduct = deleteProduct;
