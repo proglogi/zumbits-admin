@@ -11,12 +11,22 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            max-width: 100%;
+            overflow-x: hidden;
             background-color: #f9f9f9;
         }
 
-        h2,
-        h3 {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h2, h3 {
             text-align: center;
         }
 
@@ -110,6 +120,22 @@
             margin-top: 10px;
             font-weight: bold;
         }
+
+        table {
+            table-layout: auto;
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            min-width: 100px;
+            vertical-align: top;
+            word-wrap: break-word;
+            white-space: normal;
+        }
     </style>
 
 </head>
@@ -154,6 +180,7 @@
     </form>
 
     <h3>Lista de Produtos</h3>
+    
     <div style="text-align: center; margin-bottom: 10px;">
 
         <button id="cardViewBtn" title="Visualização em Cards" style="background:none; border:none; cursor:pointer; font-size: 22px; color:#0d6efd; margin-right:10px;">
@@ -162,6 +189,10 @@
         <button id="listViewBtn" title="Visualização em Lista" style="background:none; border:none; cursor:pointer; font-size: 22px; color:#888;">
             &#9776; <!-- Ícone de lista -->
         </button>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <input type="text" id="searchInput" placeholder="Buscar por ID ou nome..." style="padding:8px; width: 80%; max-width: 400px; border-radius: 6px; border: 1px solid #ccc;">
     </div>
 
     <div class="product-list" id="productList"></div>
@@ -318,9 +349,8 @@
                     });
                 }
 
-                let currentView = "card"; // default
+                let currentView = "card"
 
-                // Função para alternar visualização para cards
                 function setCardView() {
                     currentView = "card";
                     document.getElementById("cardViewBtn").style.color = "#0d6efd";
@@ -342,127 +372,161 @@
                 document.getElementById("listViewBtn").addEventListener("click", setListView);
 
                 function renderProducts(snapshot) {
-                    const list = document.getElementById("productList");
-                    list.innerHTML = "";
+                    try {
+                        const list = document.getElementById("productList");
+                        list.innerHTML = ""; // limpa o container sempre
 
-                    const filter = document.getElementById("searchInput").value.trim().toLowerCase();
+                        const searchInputEl = document.getElementById("searchInput");
+                        const filter = searchInputEl ? searchInputEl.value.trim().toLowerCase() : "";
 
-                    const data = [];
-                    snapshot.forEach(child => {
-                        const id = child.key;
-                        const p = child.val();
-                        const name = (p.descricao || "").toLowerCase();
+                        const data = [];
+                        snapshot.forEach(child => {
+                            const id = child.key;
+                            const p = child.val();
+                            const name = (p.descricao || "").toLowerCase();
 
-                        if (id.toLowerCase().includes(filter) || name.includes(filter)) {
-                            data.push({ id, ...p });
-                        }
-                    });
+                            if (id.toLowerCase().includes(filter) || name.includes(filter)) {
+                                data.push({ id, ...p });
+                            }
+                        });
 
-                    if (currentView === "card") {
-                        data.forEach(p => {
-                            const div = document.createElement("div");
-                            div.className = "product-card";
-                            div.innerHTML = `
-                                <strong>${p.id || ""}: ${p.descricao || ""}</strong><br>
-                                Preço: R$ ${p.precoVenda?.toFixed(2) || "-"}<br>
-                                ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto">` : ""}
-                                <br>
-                                <button onclick="updateProduct('${p.id}')">Editar</button>
-                                <button onclick="deleteProduct('${p.id}')">Excluir</button>
+                        if (currentView === "card") {
+                            // Modo card: usar grid
+                            list.style.display = "grid";
+                            list.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
+                            list.style.gap = "20px";
+                            list.style.maxWidth = "1000px";
+                            list.style.margin = "30px auto";
+                            list.style.padding = "0";
+
+                            data.forEach(p => {
+                                const div = document.createElement("div");
+                                div.className = "product-card";
+                                div.innerHTML = `
+                                    <strong>${p.id || ""}: ${p.descricao || ""}</strong><br>
+                                    Preço: R$ ${p.precoVenda?.toFixed(2) || "-"}<br>
+                                    ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto">` : ""}
+                                    <br>
+                                    <button onclick="updateProduct('${p.id}')">Editar</button>
+                                    <button onclick="deleteProduct('${p.id}')">Excluir</button>
+                                `;
+                                list.appendChild(div);
+                            });
+                        } else if (currentView === "list") {
+                            // Modo lista: usar block e exibir tabela
+                            list.style.display = "block";
+                            list.style.maxWidth = "1000px";
+                            list.style.margin = "30px auto";
+                            list.style.padding = "0";
+
+                            const table = document.createElement("table");
+                            table.style.width = "100%";
+                            table.style.borderCollapse = "collapse";
+                            table.style.fontSize = "14px";
+
+                            // Cabeçalho
+                            const thead = document.createElement("thead");
+                            thead.innerHTML = `
+                                <tr style="background-color:#0d6efd; color:white;">
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Preço Venda</th>
+                                    <th>Categoria</th>
+                                    <th>Estoque</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
                             `;
-                            list.appendChild(div);
-                        });
-                    } else if (currentView === "list") {
-                        const table = document.createElement("table");
-                        table.style.width = "90%";
-                        table.style.margin = "auto";
-                        table.style.borderCollapse = "collapse";
-                        table.style.fontSize = "14px";
+                            table.appendChild(thead);
 
-                        // Cabeçalho
-                        const thead = document.createElement("thead");
-                        thead.innerHTML = `
-                        <tr style="background-color:#0d6efd; color:white;">
-                            <th style="padding: 8px; border: 1px solid #ccc;">ID</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Nome</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Preço Venda</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Categoria</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Estoque</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Status</th>
-                            <th style="padding: 8px; border: 1px solid #ccc;">Ações</th>
-                        </tr>
-                        `;
-                        table.appendChild(thead);
+                            const tbody = document.createElement("tbody");
 
-                        const tbody = document.createElement("tbody");
+                            data.forEach(p => {
+                                const tr = document.createElement("tr");
+                                tr.innerHTML = `
+                                    <td style="border:1px solid #ccc; padding:6px;">${p.id}</td>
+                                    <td style="border:1px solid #ccc; padding:6px;">${p.descricao}</td>
+                                    <td style="border:1px solid #ccc; padding:6px;">R$ ${p.precoVenda?.toFixed(2) || "-"}</td>
+                                    <td style="border:1px solid #ccc; padding:6px;">${p.categoria}</td>
+                                    <td style="border:1px solid #ccc; padding:6px;">${p.estoque ?? "-"}</td>
+                                    <td style="border:1px solid #ccc; padding:6px;">${p.status ?? "-"}</td>
+                                    <td style="padding: 6px; border: 1px solid #ccc; text-align: center;">
+                                        <button onclick="toggleDetails(this)" title="Mais detalhes" style="margin-right: 8px; background:none; border:none; cursor:pointer; padding: 2px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#0d6efd" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.442 0a5 5 0 1 1 7.07-7.07 5 5 0 0 1-7.07 7.07z"/>
+                                            </svg>
+                                        </button>
+                                        <button onclick="updateProduct('${p.id}')" title="Editar" style="margin-right: 8px; background:none; border:none; cursor:pointer; padding: 2px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#198754" viewBox="0 0 16 16">
+                                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706l-1.793 1.793-2.121-2.12L13.38.525a.5.5 0 0 1 .706 0l1.415 1.415zm-2.56 2.56-8.143 8.144-2.122.707.707-2.121 8.143-8.143 1.415 1.415z"/>
+                                            </svg>
+                                        </button>
+                                        <button onclick="deleteProduct('${p.id}')" title="Excluir" style="background:none; border:none; cursor:pointer; padding: 2px; color:#dc3545;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#dc3545" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5zm1 3a.5.5 0 0 1 1 0v3a.5.5 0 0 1-1 0v-3zm3 0a.5.5 0 0 1 1 0v3a.5.5 0 0 1-1 0v-3z"/>
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1h-1v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4h-1a1 1 0 1 1 0-2h3.5a1 1 0 1 1 0 2H9v9h1V4h1a1 1 0 0 1 1 1z"/>
+                                            </svg>
+                                        </button>
+                                        </td>
 
-                        data.forEach(p => {
-                            const tr = document.createElement("tr");
-                            tr.style.border = "1px solid #ccc";
+                                `;
 
-                            tr.innerHTML = `
-                            <td style="padding: 6px; border: 1px solid #ccc;">${p.id}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">${p.descricao}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">R$ ${p.precoVenda?.toFixed(2) || "-"}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">${p.categoria}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">${p.estoque ?? "-"}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">${p.status ?? "-"}</td>
-                            <td style="padding: 6px; border: 1px solid #ccc;">
-                            <button onclick="toggleDetails(this)" style="margin-right: 5px;">Mais detalhes</button>
-                            <button onclick="updateProduct('${p.id}')">Editar</button>
-                            <button onclick="deleteProduct('${p.id}')">Excluir</button>
-                            </td>
-                        `;
+                                const trDetails = document.createElement("tr");
+                                trDetails.style.display = "none";
+                                trDetails.style.backgroundColor = "#f4f4f4";
+                                trDetails.innerHTML = `
+                                    <td colspan="7" style="padding:10px; border:1px solid #ccc; font-size:13px;">
+                                        <strong>Características:</strong> ${p.caracteristicas || "-"}<br>
+                                        <strong>Marca:</strong> ${p.marca || "-"}<br>
+                                        <strong>Fornecedor:</strong> ${p.fornecedor || "-"}<br>
+                                        <strong>Data da Compra:</strong> ${p.dataCompra || "-"}<br>
+                                        ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto" style="max-height:100px; margin-top:8px; border-radius:5px;">` : ""}
+                                    </td>
+                                `;
 
-                            // Linha extra para detalhes (oculta inicialmente)
-                            const trDetails = document.createElement("tr");
-                            trDetails.style.display = "none";
-                            trDetails.style.backgroundColor = "#f4f4f4";
+                                tbody.appendChild(tr);
+                                tbody.appendChild(trDetails);
+                            });
 
-                            trDetails.innerHTML = `
-                            <td colspan="7" style="padding: 10px; border: 1px solid #ccc; font-size: 13px;">
-                            <strong>Características:</strong> ${p.caracteristicas || "-"}<br>
-                            <strong>Marca:</strong> ${p.marca || "-"}<br>
-                            <strong>Fornecedor:</strong> ${p.fornecedor || "-"}<br>
-                            <strong>Data da Compra:</strong> ${p.dataCompra || "-"}<br>
-                            ${p.imagem ? `<img src="${p.imagem}" alt="Imagem do produto" style="max-height:100px; margin-top:8px; border-radius:5px;">` : ""}
-                            </td>
-                        `;
-
-                            tbody.appendChild(tr);
-                            tbody.appendChild(trDetails);
-                        });
-
-                        table.appendChild(tbody);
-                        list.appendChild(table);
+                            table.appendChild(tbody);
+                            list.appendChild(table);
+                        }
+                    } catch (err) {
+                        console.error("Erro ao renderizar produtos:", err);
                     }
                 }
 
-                // Função para alternar detalhes no modo lista
-                window.toggleDetails = function (btn) {
-                    const tr = btn.closest("tr");
-                    const nextTr = tr.nextElementSibling;
-                    if (nextTr.style.display === "none") {
-                        nextTr.style.display = "table-row";
-                        btn.textContent = "Menos detalhes";
-                    } else {
-                        nextTr.style.display = "none";
-                        btn.textContent = "Mais detalhes";
-                    }
-                };
 
-                // Atualiza a lista ao buscar
-                document.getElementById("searchInput").addEventListener("input", () => {
+                    // Função para alternar detalhes no modo lista
+                    window.toggleDetails = function (btn) {
+                        const tr = btn.closest("tr");
+                        const nextTr = tr.nextElementSibling;
+                        if (nextTr.style.display === "none") {
+                            nextTr.style.display = "table-row";
+                            btn.textContent = "Menos detalhes";
+                        } else {
+                            nextTr.style.display = "none";
+                            btn.textContent = "Mais detalhes";
+                        }
+                    };
+
+                    // Atualiza a lista ao buscar
+                    document.getElementById("searchInput").addEventListener("input", () => {
+                        db.once("value").then(renderProducts);
+                    });
+
+                    //Tratando searchInput como opcional
+                    const searchInputEl = document.getElementById("searchInput");
+                    const filter = searchInputEl ? searchInputEl.value.trim().toLowerCase() : "";
+
+
+                    // Atualiza a lista inicialmente
                     db.once("value").then(renderProducts);
+
+                    window.addProduct = addProduct;
+                    window.deleteProduct = deleteProduct;
+                    window.updateProduct = updateProduct;
                 });
-
-                // Atualiza a lista inicialmente
-                db.once("value").then(renderProducts);
-
-                window.addProduct = addProduct;
-                window.deleteProduct = deleteProduct;
-                window.updateProduct = updateProduct;
-            });
     </script>
 </body>
 
