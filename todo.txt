@@ -1,0 +1,8 @@
+--- CRUD | CONTROLE DE PRODUTOS
+1) Arrumar ícone de 'mais detalhes' (lupa) do modo lista que se transforma em texto ao ser selecionado
+2) No modo lista, ao clicar em 'mais detalhes', fazer com que todas as informações inseridas apareçam
+3) Consertar a opção de 'editar' produto para que deixe de abrir uma caixa de diálogo e passe a permitir a edição de uma informação por vez, sem a necessidade de alterar as demais.
+4) Criar função para atualização de estoque (com histórico de entrada e saída).
+5) Se possível, adicionar histórico de adição, remoção e edição de produtos.
+
+--- CAIXA DE AVISOS | PRODUTOS FORA DE ESTOQUE
