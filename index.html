@@ -1,123 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Administração</title>
-  <style>
-    /* Reset básico */
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #333;
-      color: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    header {
-      margin-bottom: 40px;
-    }
-
-    header img {
-      max-width: 200px;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 40px;
-      font-weight: 600;
-    }
-
-    .btn-container {
-      display: flex;
-      gap: 40px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-      max-width: 600px;
-    }
-
-    a.btn {
-      background-color: #d32f2f; /* vermelho forte */
-      color: white;
-      text-decoration: none;
-      padding: 25px 40px;
-      border-radius: 12px;
-      font-size: 1.25rem;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 4px 8px rgba(211, 47, 47, 0.4);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      width: 250px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    a.btn:hover {
-      background-color: #b71c1c;
-      box-shadow: 0 6px 12px rgba(183, 28, 28, 0.6);
-    }
-
-    a.btn svg {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 15px;
-      fill: white;
-    }
-
-    a.btn span {
-      text-align: center;
-    }
-
-    /* Responsividade */
-    @media (max-width: 540px) {
-      .btn-container {
-        flex-direction: column;
-        gap: 25px;
-      }
-
-      a.btn {
-        width: 100%;
-        max-width: 300px;
-        padding: 20px;
-      }
-    }
-  </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tela de Login</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
-  <header>
-    <img src="https://res.cloudinary.com/dsf2txoqr/image/upload/v1747959665/svim96ficucptxatnuum.png" alt="Logo do Site" />
-  </header>
-
-  <h1>Painel de Administração</h1>
-
-  <div class="btn-container">
-    <a href="cadastro.html" class="btn" title="Cadastrar novos produtos">
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <path d="M8 20v24a4 4 0 0 0 4 4h40a4 4 0 0 0 4-4V20L32 8 8 20zM32 12l20 12H12l20-12zM12 44V26l20 12 20-12v18H12z"/>
-      </svg>
-      <span>Cadastro de Produtos</span>
-    </a>
-
-    <a href="disponibilidade.html" class="btn" title="Ver e-mails cadastrados para avisos">
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <path d="M48 16H16a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4V20a4 4 0 0 0-4-4zm0 6-16 13-16-13V20l16 13 16-13z"/>
-      </svg>
-      <span>E-mails “Avise-me”</span>
-    </a>
+  <div class="login-container">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Senha" />
+    <button onclick="login()">Entrar</button>
+    <p class="error" id="error-msg"></p>
+    <p id="mensagem-login" style="display: none; color: green; margin-top: 10px;">f</p>
   </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- Scripts locais -->
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/script.js"></script>
 </body>
 </html>

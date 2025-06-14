@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Administração</title>
+
+  <link rel="stylesheet" href="/assets/CSS/page1.css" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- Seu arquivo de configuração Firebase -->
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <header>
+    <img src="https://res.cloudinary.com/dsf2txoqr/image/upload/v1747959665/svim96ficucptxatnuum.png" alt="Logo do Site" />
+  </header>
+
+  <h1>Painel de Administração</h1>
+
+  <div class="btn-container">
+    <a href="page2.html" class="btn" title="Cadastrar novos produtos">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path d="M8 20v24a4 4 0 0 0 4 4h40a4 4 0 0 0 4-4V20L32 8 8 20zM32 12l20 12H12l20-12zM12 44V26l20 12 20-12v18H12z"/>
+      </svg>
+      <span>Cadastro de Produtos</span>
+    </a>
+
+    <a href="page3.html" class="btn" title="Ver e-mails cadastrados para avisos">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path d="M48 16H16a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4V20a4 4 0 0 0-4-4zm0 6-16 13-16-13V20l16 13 16-13z"/>
+      </svg>
+      <span>E-mails “Avise-me”</span>
+    </a>
+  </div>
+
+  <button onclick="logout()">Sair</button>
+
+  <script>
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+  </script>
+
+  <script>
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
